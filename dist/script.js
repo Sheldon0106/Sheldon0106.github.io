@@ -29,26 +29,28 @@ window.matchMedia("(min-width: 901px)").addEventListener("change", closeMenu);
 
 const filters = document.querySelector(".publication-filters");
 const publications = [...document.querySelectorAll(".publication")];
-filters.hidden = false;
-filters.addEventListener("click", event => {
-  const button = event.target.closest("button[data-filter]");
-  if (!button) return;
-  const kind = button.dataset.filter;
-  filters.querySelectorAll("button").forEach(item => {
-    const active = item === button;
-    item.classList.toggle("is-active", active);
-    item.setAttribute("aria-pressed", String(active));
+if (filters) {
+  filters.hidden = false;
+  filters.addEventListener("click", event => {
+    const button = event.target.closest("button[data-filter]");
+    if (!button) return;
+    const kind = button.dataset.filter;
+    filters.querySelectorAll("button").forEach(item => {
+      const active = item === button;
+      item.classList.toggle("is-active", active);
+      item.setAttribute("aria-pressed", String(active));
+    });
+    let count = 0;
+    publications.forEach(publication => {
+      publication.hidden = kind !== "all" && publication.dataset.kind !== kind;
+      if (!publication.hidden) count++;
+    });
+    document.querySelector("#filter-status").textContent = `${count} ${count === 1 ? "work" : "works"} shown.`;
   });
-  let count = 0;
-  publications.forEach(publication => {
-    publication.hidden = kind !== "all" && publication.dataset.kind !== kind;
-    if (!publication.hidden) count++;
-  });
-  document.querySelector("#filter-status").textContent = `${count} ${count === 1 ? "work" : "works"} shown.`;
-});
+}
 
 const copyButton = document.querySelector(".copy-email");
-if (navigator.clipboard && window.isSecureContext) {
+if (copyButton && navigator.clipboard && window.isSecureContext) {
   copyButton.hidden = false;
   copyButton.addEventListener("click", async () => {
     const status = document.querySelector(".copy-status");
@@ -65,10 +67,11 @@ if (navigator.clipboard && window.isSecureContext) {
 }
 
 const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')];
-const trackedSections = sectionLinks.map(link => document.querySelector(link.hash));
+const trackedSections = sectionLinks.map(link => document.querySelector(link.hash)).filter(Boolean);
 let scrollQueued = false;
 function updateNavigation() {
   let current = trackedSections[0];
+  if (!current) return;
   for (const section of trackedSections) {
     if (section.getBoundingClientRect().top <= 150) current = section;
   }
@@ -78,10 +81,12 @@ function updateNavigation() {
   });
   scrollQueued = false;
 }
-window.addEventListener("scroll", () => {
-  if (!scrollQueued) {
-    scrollQueued = true;
-    window.requestAnimationFrame(updateNavigation);
-  }
-}, { passive: true });
-updateNavigation();
+if (trackedSections.length) {
+  window.addEventListener("scroll", () => {
+    if (!scrollQueued) {
+      scrollQueued = true;
+      window.requestAnimationFrame(updateNavigation);
+    }
+  }, { passive: true });
+  updateNavigation();
+}
