@@ -27,28 +27,6 @@ document.addEventListener("click", event => {
 });
 window.matchMedia("(min-width: 901px)").addEventListener("change", closeMenu);
 
-const filters = document.querySelector(".publication-filters");
-const publications = [...document.querySelectorAll(".publication")];
-if (filters) {
-  filters.hidden = false;
-  filters.addEventListener("click", event => {
-    const button = event.target.closest("button[data-filter]");
-    if (!button) return;
-    const kind = button.dataset.filter;
-    filters.querySelectorAll("button").forEach(item => {
-      const active = item === button;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-pressed", String(active));
-    });
-    let count = 0;
-    publications.forEach(publication => {
-      publication.hidden = kind !== "all" && publication.dataset.kind !== kind;
-      if (!publication.hidden) count++;
-    });
-    document.querySelector("#filter-status").textContent = `${count} ${count === 1 ? "work" : "works"} shown.`;
-  });
-}
-
 const copyButton = document.querySelector(".copy-email");
 if (copyButton && navigator.clipboard && window.isSecureContext) {
   copyButton.hidden = false;
@@ -64,29 +42,4 @@ if (copyButton && navigator.clipboard && window.isSecureContext) {
       status.textContent = "Please select and copy huan2814@umn.edu, or use the email link.";
     }
   });
-}
-
-const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')];
-const trackedSections = sectionLinks.map(link => document.querySelector(link.hash)).filter(Boolean);
-let scrollQueued = false;
-function updateNavigation() {
-  let current = trackedSections[0];
-  if (!current) return;
-  for (const section of trackedSections) {
-    if (section.getBoundingClientRect().top <= 150) current = section;
-  }
-  sectionLinks.forEach(link => {
-    if (link.hash === `#${current.id}`) link.setAttribute("aria-current", "location");
-    else link.removeAttribute("aria-current");
-  });
-  scrollQueued = false;
-}
-if (trackedSections.length) {
-  window.addEventListener("scroll", () => {
-    if (!scrollQueued) {
-      scrollQueued = true;
-      window.requestAnimationFrame(updateNavigation);
-    }
-  }, { passive: true });
-  updateNavigation();
 }
